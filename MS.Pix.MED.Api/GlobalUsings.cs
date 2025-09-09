@@ -1,0 +1,15 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading.Tasks;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Configuration;
+global using System.Text.Json;
+global using MS.Pix.MED.Application;
+global using MS.Pix.MED.Domain;
+global using MS.Pix.MED.Infrastructure;
+global using MS.Pix.MED.Integration;
+global using MS.Pix.Shared;

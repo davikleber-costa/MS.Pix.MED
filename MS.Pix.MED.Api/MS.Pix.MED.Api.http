@@ -1,0 +1,6 @@
+@MS.Pix.MED.Api_HostAddress = http://localhost:5244
+
+GET {{MS.Pix.MED.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
