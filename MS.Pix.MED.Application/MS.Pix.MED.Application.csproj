@@ -1,8 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\MS.Pix.MED.Domain\MS.Pix.MED.Domain.csproj" />
     <ProjectReference Include="..\MS.Pix.Shared\MS.Pix.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.3.0" />
   </ItemGroup>
 
   <PropertyGroup>

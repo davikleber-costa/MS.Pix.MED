@@ -1,0 +1,39 @@
+using MediatR;
+using MS.Pix.MED.Domain.Entities;
+using MS.Pix.MED.Infrastructure.Interfaces;
+
+namespace MS.Pix.MED.Application.Transacao.Commands;
+
+public record UpdateTransacaoCommand(
+    int Id,
+    int TipoInfracaoId,
+    string IdNotificacaoJdpi,
+    string StatusRelatoJdpi,
+    string? GuidExtratoJdpi = null,
+    string? CaminhoArquivo = null
+) : IRequest<Domain.Entities.Transacao?>;
+
+public class UpdateTransacaoCommandHandler : IRequestHandler<UpdateTransacaoCommand, Domain.Entities.Transacao?>
+{
+    private readonly ITransacaoRepository _repository;
+
+    public UpdateTransacaoCommandHandler(ITransacaoRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<Domain.Entities.Transacao?> Handle(UpdateTransacaoCommand request, CancellationToken cancellationToken)
+    {
+        var transacao = await _repository.GetByIdAsync(request.Id);
+        if (transacao == null)
+            return null;
+
+        transacao.TipoInfracaoId = request.TipoInfracaoId;
+        transacao.IdNotificacaoJdpi = request.IdNotificacaoJdpi;
+        transacao.StatusRelatoJdpi = request.StatusRelatoJdpi;
+        transacao.GuidExtratoJdpi = request.GuidExtratoJdpi;
+        transacao.CaminhoArquivo = request.CaminhoArquivo;
+
+        return await _repository.UpdateAsync(transacao);
+    }
+}

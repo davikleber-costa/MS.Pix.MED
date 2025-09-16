@@ -1,10 +1,9 @@
 using MS.Pix.MED.Integration.Jdpi;
-using MS.Pix.MED.Application.JdpiLog;
-using MS.Pix.MED.Application.Movimentacao;
-using MS.Pix.MED.Application.TipoInfracao;
-using MS.Pix.MED.Application.TipoTransaction;
 using MS.Pix.MED.Infrastructure.Extensions;
 using MS.Pix.MED.Infrastructure.Middlewares;
+using MS.Pix.MED.Infrastructure;
+using MS.Pix.MED.Application.Extensions;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +13,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configurar MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(MS.Pix.MED.Application.AssemblyReference).Assembly));
+
+// Configurar Infrastructure
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddInfrastructure(connectionString);
+
 // Configurar autenticação e autorização
-builder.UseIdentityProvider();
+builder.Services.UseIdentityProvider(builder.Configuration);
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 
@@ -23,16 +30,18 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.UseJdpiApiIntegration(builder.Configuration);
 
 // Configurar CORS para API JDPI
-builder.Services.AddJdpiCors();
+builder.Services.AddJdpiCors(builder.Configuration);
 
 // Configurar serviços de autenticação
 builder.Services.AddAuthenticationServices();
 
+// Configurar autenticação AWS Cognito (opcional)
+builder.Services.AddCognitoAuthentication(builder.Configuration);
+
 // Configurar aplicação - handlers MediatR
-builder.Services.UseJdpiLog();
-builder.Services.UseMovimentacao();
 builder.Services.UseTipoInfracao();
-builder.Services.UseTipoTransaction();
+builder.Services.UseTransacao();
+builder.Services.UseRetornoJdpi();
 
 var app = builder.Build();
 
@@ -45,18 +54,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Configurar CORS
-app.UseCors("JdpiApiPolicy");
-
-// Configurar autenticação e autorização
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Configurar controllers
 app.MapControllers();
 
-// Configurar middlewares
+// Configurar middleware personalizado
 app.UseMiddleware<RequestContextMiddleware>();
-app.UseExceptionHandler("/error");
+
+// Configurar CORS para API JDPI
+app.UseCors("JdpiApiPolicy");
+
+// Configurar tratamento de exceções
+app.UseExceptionHandler("/Error");
 
 app.Run();
