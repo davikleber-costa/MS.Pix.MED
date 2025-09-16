@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MS.Pix.MED.Integration.Jdpi.Configuration;
 using MS.Pix.MED.Integration.Jdpi.Services;
+using Refit;
 
 namespace MS.Pix.MED.Integration.Jdpi;
 
@@ -13,7 +14,7 @@ public static class StartupJdpi
         services.Configure<JdpiConfiguration>(configuration.GetSection(JdpiConfiguration.SectionName));
 
         // Registrar HttpClient para comunicação direta com API JDPI
-        services.AddHttpClient<IJdpiIntegrationService, JdpiIntegrationService>((serviceProvider, client) =>
+        services.AddHttpClient<JdpiIntegrationService>((serviceProvider, client) =>
         {
             var jdpiConfig = configuration.GetSection(JdpiConfiguration.SectionName).Get<JdpiConfiguration>();
             if (jdpiConfig != null)
@@ -37,7 +38,18 @@ public static class StartupJdpi
         });
 
         // Registrar serviço de integração
-        services.AddScoped<IJdpiIntegrationService, JdpiIntegrationService>();
+        services.AddScoped<JdpiIntegrationService>();
+        
+        // Registrar IAuthJdpi usando Refit
+        services.AddRefitClient<IAuthJdpi>()
+            .ConfigureHttpClient((serviceProvider, client) =>
+            {
+                var jdpiConfig = configuration.GetSection(JdpiConfiguration.SectionName).Get<JdpiConfiguration>();
+                if (jdpiConfig != null)
+                {
+                    client.BaseAddress = new Uri(jdpiConfig.AuthUrl);
+                }
+            });
         
         return services;
     }

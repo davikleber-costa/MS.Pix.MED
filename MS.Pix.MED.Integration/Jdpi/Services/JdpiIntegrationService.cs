@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 
 namespace MS.Pix.MED.Integration.Jdpi.Services;
 
-public class JdpiIntegrationService : IJdpiIntegrationService
+public class JdpiIntegrationService
 {
     private readonly HttpClient _httpClient;
     private readonly JdpiConfiguration _configuration;
@@ -117,14 +117,14 @@ public class JdpiIntegrationService : IJdpiIntegrationService
         }
     }
 
-    public async Task<JdpiLog> SendToJdpiAsync(string endpoint, object requestData, Guid idExtrato, CancellationToken cancellationToken = default)
+    public async Task<RetornoJdpi> SendToJdpiAsync(string endpoint, object requestData, long transacaoId, CancellationToken cancellationToken = default)
     {
-        var jdpiLog = new JdpiLog
+        var retornoJdpi = new RetornoJdpi
         {
-            DtLog = DateTime.UtcNow,
-            IdExtrato = idExtrato,
-            RequestJDPI = JsonConvert.SerializeObject(requestData),
-            TpTransaction = true // Indica que é uma transação de envio
+            TransacaoId = transacaoId,
+            RequisicaoJdpi = JsonConvert.SerializeObject(requestData),
+            DataCriacao = DateTime.UtcNow,
+            HoraCriacao = TimeOnly.FromDateTime(DateTime.UtcNow)
         };
 
         try
@@ -142,7 +142,7 @@ public class JdpiIntegrationService : IJdpiIntegrationService
             var response = await _httpClient.PostAsync($"{_configuration.BaseUrl}/{endpoint}", content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            jdpiLog.ResponseJDPI = responseContent;
+            retornoJdpi.RespostaJdpi = responseContent;
 
             if (response.IsSuccessStatusCode)
             {
@@ -156,10 +156,10 @@ public class JdpiIntegrationService : IJdpiIntegrationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao enviar dados para API JDPI externa");
-            jdpiLog.ResponseJDPI = $"Erro: {ex.Message}";
+            retornoJdpi.RespostaJdpi = $"Erro: {ex.Message}";
         }
 
-        return jdpiLog;
+        return retornoJdpi;
     }
 
     public async Task<TResponse> QueryJdpiAsync<TResponse>(string endpoint, object? queryParameters = null, CancellationToken cancellationToken = default)
@@ -189,9 +189,9 @@ public class JdpiIntegrationService : IJdpiIntegrationService
         }
     }
 
-    public async Task<JdpiLog> ProcessRefundAsync(object refundData, Guid idExtrato, CancellationToken cancellationToken = default)
+    public async Task<RetornoJdpi> ProcessRefundAsync(object refundData, long transacaoId, CancellationToken cancellationToken = default)
     {
-        return await SendToJdpiAsync("devolucao", refundData, idExtrato, cancellationToken);
+        return await SendToJdpiAsync("devolucao", refundData, transacaoId, cancellationToken);
     }
 
     public async Task<TResponse> ListRefundsAsync<TResponse>(object? filters = null, CancellationToken cancellationToken = default)

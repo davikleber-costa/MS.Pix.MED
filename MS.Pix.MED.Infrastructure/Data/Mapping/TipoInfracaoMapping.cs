@@ -8,31 +8,34 @@ public class TipoInfracaoMapping : IEntityTypeConfiguration<TipoInfracao>
 {
     public void Configure(EntityTypeBuilder<TipoInfracao> builder)
     {
-        builder.ToTable("TbMEDTipoInfracao", "dbo");
-        
-        builder.HasKey(x => x.IdTipoInfracao);
-        
-        builder.Property(x => x.IdTipoInfracao)
-            .HasColumnName("IdTipoInfracao")
-            .ValueGeneratedNever()
-            .IsRequired();
-            
-        builder.Property(x => x.DsDescricao)
-            .HasColumnName("DsDescricao")
+        builder.ToTable("tipo_infracao");
+
+        builder.HasKey(t => t.Id)
+            .HasName("pk_tipo_infracao");
+
+        builder.Property(t => t.Id)
+            .HasColumnName("id")
+            .HasColumnType("BIGSERIAL")
+            .ValueGeneratedOnAdd();
+
+        builder.Property(t => t.Descricao)
+            .HasColumnName("descricao")
             .HasColumnType("VARCHAR(300)")
             .IsRequired();
-            
-        builder.Property(x => x.StAtivo)
-            .HasColumnName("StAtivo")
-            .HasColumnType("BIT")
-            .HasDefaultValue(true)
-            .IsRequired();
-            
-        // Relacionamento com Movimentacao
-        builder.HasMany(x => x.Movimentacoes)
-            .WithOne(x => x.TipoInfracao)
-            .HasForeignKey(x => x.IdTipoInfracao)
-            .HasConstraintName("FK_TbMEDMovimentacao_TipoInfracao")
+
+        builder.Property(t => t.Ativo)
+            .HasColumnName("ativo")
+            .HasColumnType("SMALLINT")
+            .HasDefaultValue(1)
+            .HasConversion(
+                v => v ? (short)1 : (short)0,
+                v => v == 1);
+
+        // Relationships
+        builder.HasMany(t => t.Transacoes)
+            .WithOne(tr => tr.TipoInfracao)
+            .HasForeignKey(tr => tr.TipoInfracaoId)
+            .HasConstraintName("fk_transacao_tipo_infracao")
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace MS.Pix.MED.Api.Controllers;
 
 [ApiController]
-[AllowAnonymous] // Cognito precisa acessar sem autenticação
+[AllowAnonymous] // Cognito precisa acessar sem autenticaï¿½ï¿½o
 [Route("v1/cognito")]
 [Produces("application/json")]
 public class CognitoWebhookController : ControllerBase
@@ -18,7 +18,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de pré-autenticação do Cognito
+	/// Webhook para eventos de prï¿½-autenticaï¿½ï¿½o do Cognito
 	/// </summary>
 	[HttpPost("pre-authentication")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -30,8 +30,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Pre-Authentication trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui você pode implementar validações customizadas
-			// Por exemplo: verificar se o usuário está ativo, validar domínio do email, etc.
+			// Aqui vocï¿½ pode implementar validaï¿½ï¿½es customizadas
+			// Por exemplo: verificar se o usuï¿½rio estï¿½ ativo, validar domï¿½nio do email, etc.
 
 			var response = new CognitoResponse
 			{
@@ -53,7 +53,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de pós-autenticação do Cognito
+	/// Webhook para eventos de pï¿½s-autenticaï¿½ï¿½o do Cognito
 	/// </summary>
 	[HttpPost("post-authentication")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -65,8 +65,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Post-Authentication trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui você pode implementar lógicas pós-login
-			// Por exemplo: registrar último login, atualizar estatísticas, etc.
+			// Aqui vocï¿½ pode implementar lï¿½gicas pï¿½s-login
+			// Por exemplo: registrar ï¿½ltimo login, atualizar estatï¿½sticas, etc.
 
 			var response = new CognitoResponse
 			{
@@ -84,7 +84,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de pré-signup do Cognito
+	/// Webhook para eventos de prï¿½-signup do Cognito
 	/// </summary>
 	[HttpPost("pre-signup")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -96,8 +96,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Pre-SignUp trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui você pode implementar validações de registro
-			// Por exemplo: validar formato do email, verificar domínios permitidos, etc.
+			// Aqui vocï¿½ pode implementar validaï¿½ï¿½es de registro
+			// Por exemplo: validar formato do email, verificar domï¿½nios permitidos, etc.
 
 			var response = new CognitoResponse
 			{
@@ -119,7 +119,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de pós-confirmação do Cognito
+	/// Webhook para eventos de pï¿½s-confirmaï¿½ï¿½o do Cognito
 	/// </summary>
 	[HttpPost("post-confirmation")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -131,8 +131,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Post-Confirmation trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui você pode implementar lógicas pós-confirmação
-			// Por exemplo: criar perfil do usuário, enviar email de boas-vindas, etc.
+			// Aqui vocï¿½ pode implementar lï¿½gicas pï¿½s-confirmaï¿½ï¿½o
+			// Por exemplo: criar perfil do usuï¿½rio, enviar email de boas-vindas, etc.
 
 			var response = new CognitoResponse
 			{
@@ -150,7 +150,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Health check para verificar se o serviço está funcionando
+	/// Health check para verificar se o serviï¿½o estï¿½ funcionando
 	/// </summary>
 	[HttpGet("health")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
