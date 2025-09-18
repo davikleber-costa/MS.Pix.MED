@@ -1,19 +1,22 @@
-using MS.Pix.MED.Domain.Entities;
+using MS.Pix.Shared;
 
 namespace MS.Pix.MED.Infrastructure.Interfaces;
 
-public interface IRepository<T, TFilter, TUpdateDto> where T : BaseEntity
+public interface IRepository<T, TFilter, TUpdateDto>
+    where T : class
+    where TFilter : BaseFilter
 {
-    Task<PaginableEntity<T>> GetListAsync(TFilter filter, CancellationToken cancellationToken = default);
-    Task<T?> GetAsync(object filters, CancellationToken cancellationToken = default);
-    Task<Guid> SaveAsync(T entity, CancellationToken cancellationToken = default);
-    Task<T?> FindAsync(Guid id, CancellationToken cancellationToken = default);
-    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Guid> UpdateAsync(TUpdateDto updateData, T entity, CancellationToken cancellationToken = default);
+    Task<IEnumerable<T>> GetListAsync(TFilter filter);
+    Task<T?> GetAsync(long id);
+    Task<T> SaveAsync(T entity);
+    Task<T?> FindAsync(long id);
+    Task<T> UpdateAsync(T entity, TUpdateDto updateDto);
 }
 
-public interface IRepository<T, TFilter> where T : BaseEntity
+public interface IRepository<T, TFilter>
+    where T : class
+    where TFilter : BaseFilter
 {
-    Task<T?> GetAsync(TFilter filter, CancellationToken cancellationToken = default);
-    Task<PaginableEntity<T>> GetListAsync(TFilter filter, CancellationToken cancellationToken = default);
+    Task<IEnumerable<T>> GetAsync(TFilter filter);
+    Task<IEnumerable<T>> GetListAsync(TFilter filter);
 }

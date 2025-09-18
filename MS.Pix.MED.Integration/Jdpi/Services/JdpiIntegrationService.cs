@@ -124,7 +124,7 @@ public class JdpiIntegrationService
             TransacaoId = transacaoId,
             RequisicaoJdpi = JsonConvert.SerializeObject(requestData),
             DataCriacao = DateTime.UtcNow,
-            HoraCriacao = TimeOnly.FromDateTime(DateTime.UtcNow)
+            HoraCriacao = TimeOnly.FromDateTime(DateTime.UtcNow).ToTimeSpan()
         };
 
         try

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MS.Pix.MED.Domain.Entities;
 using MS.Pix.MED.Infrastructure.Data;
 using MS.Pix.MED.Infrastructure.Interfaces;
+using MS.Pix.Shared;
 
 namespace MS.Pix.MED.Infrastructure.Repository;
 
@@ -89,5 +90,53 @@ public class TransacaoRepository : ITransacaoRepository
             .Include(t => t.RetornosJdpi)
             .Where(t => t.RetornosJdpi.Any())
             .ToListAsync();
+    }
+
+    // Implementação dos métodos da interface IRepository<Transacao, BaseFilter>
+    public async Task<IEnumerable<Transacao>> GetAsync(BaseFilter filter)
+    {
+        var query = _dbSet.AsQueryable();
+        
+        if (filter.PageSize > 0)
+        {
+            query = query.Skip(filter.PageNumber * filter.PageSize).Take(filter.PageSize);
+        }
+        
+        return await query.ToListAsync();
+    }
+
+    public async Task<IEnumerable<Transacao>> GetListAsync(BaseFilter filter)
+    {
+        return await GetAsync(filter);
+    }
+
+    public async Task<Transacao?> GetAsync(long id)
+    {
+        return await _dbSet.FindAsync(id);
+    }
+
+    public async Task<Transacao> SaveAsync(Transacao entity)
+    {
+        await _dbSet.AddAsync(entity);
+        await _context.SaveChangesAsync();
+        return entity;
+    }
+
+    public async Task<Transacao?> FindAsync(long id)
+    {
+        return await _dbSet.FindAsync(id);
+    }
+
+    public async Task<Transacao> UpdateAsync(Transacao entity, object updateDto)
+    {
+        _dbSet.Update(entity);
+        await _context.SaveChangesAsync();
+        return entity;
+    }
+
+    // Método específico da interface ITransacaoRepository
+    public async Task<IEnumerable<Transacao>> GetTransacoesByTipoInfracaoAsync(Guid tipoInfracaoId)
+    {
+        return await _dbSet.Where(t => t.TipoInfracaoId == (long)tipoInfracaoId.GetHashCode()).ToListAsync();
     }
 }
