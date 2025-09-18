@@ -35,8 +35,7 @@ builder.Services.AddJdpiCors(builder.Configuration);
 // Configurar serviços de autenticação
 builder.Services.AddAuthenticationServices();
 
-// Configurar autenticação AWS Cognito (opcional)
-builder.Services.AddCognitoAuthentication(builder.Configuration);
+
 
 // Configurar aplicação - handlers MediatR
 builder.Services.UseTipoInfracao();

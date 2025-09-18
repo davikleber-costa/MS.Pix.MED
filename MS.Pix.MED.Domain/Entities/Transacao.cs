@@ -8,6 +8,8 @@ public class Transacao
     public bool StatusRelatoJdpi { get; set; }
     public string GuidExtratoJdpi { get; set; } = string.Empty;
     public string CaminhoArquivo { get; set; } = string.Empty;
+    public string? Agencia { get; set; }
+    public string? Conta { get; set; }
     public DateTime DataCriacao { get; set; }
     public TimeOnly HoraCriacao { get; set; }
 

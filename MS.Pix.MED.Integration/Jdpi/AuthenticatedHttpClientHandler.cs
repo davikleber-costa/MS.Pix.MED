@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MS.Pix.MED.Integration.Jdpi.Request;
+using MS.Pix.MED.Integration.Jdpi.Services;
 using MS.Pix.MED.Integration.Jdpi.Response;
 using System.Net.Http.Headers;
 

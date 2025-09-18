@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MS.Pix.MED.Domain\MS.Pix.MED.Domain.csproj" />
+    <ProjectReference Include="..\MS.Pix.MED.Infrastructure\MS.Pix.MED.Infrastructure.csproj" />
     <ProjectReference Include="..\MS.Pix.Shared\MS.Pix.Shared.csproj" />
   </ItemGroup>
 

@@ -45,6 +45,16 @@ public class TransacaoMapping : IEntityTypeConfiguration<Transacao>
             .HasColumnType("VARCHAR(200)")
             .IsRequired();
 
+        builder.Property(t => t.Agencia)
+            .HasColumnName("agencia")
+            .HasColumnType("CHAR(10)")
+            .IsRequired(false);
+
+        builder.Property(t => t.Conta)
+            .HasColumnName("conta")
+            .HasColumnType("CHAR(20)")
+            .IsRequired(false);
+
         builder.Property(t => t.DataCriacao)
             .HasColumnName("data_criacao")
             .HasColumnType("DATE")

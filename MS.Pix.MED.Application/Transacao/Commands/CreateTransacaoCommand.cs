@@ -9,7 +9,9 @@ public record CreateTransacaoCommand(
     string IdNotificacaoJdpi,
     string StatusRelatoJdpi,
     string? GuidExtratoJdpi = null,
-    string? CaminhoArquivo = null
+    string? CaminhoArquivo = null,
+    string? Agencia = null,
+    string? Conta = null
 ) : IRequest<Domain.Entities.Transacao>;
 
 public class CreateTransacaoCommandHandler : IRequestHandler<CreateTransacaoCommand, Domain.Entities.Transacao>
@@ -30,6 +32,8 @@ public class CreateTransacaoCommandHandler : IRequestHandler<CreateTransacaoComm
             StatusRelatoJdpi = request.StatusRelatoJdpi,
             GuidExtratoJdpi = request.GuidExtratoJdpi,
             CaminhoArquivo = request.CaminhoArquivo,
+            Agencia = request.Agencia,
+            Conta = request.Conta,
             DataCriacao = DateOnly.FromDateTime(DateTime.Now),
             HoraCriacao = TimeOnly.FromDateTime(DateTime.Now)
         };
