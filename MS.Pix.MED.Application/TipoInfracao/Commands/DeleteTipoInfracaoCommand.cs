@@ -3,7 +3,7 @@ using MS.Pix.MED.Infrastructure.Interfaces;
 
 namespace MS.Pix.MED.Application.TipoInfracao.Commands;
 
-public record DeleteTipoInfracaoCommand(int Id) : IRequest<bool>;
+public record DeleteTipoInfracaoCommand(long Id) : IRequest<bool>;
 
 public class DeleteTipoInfracaoCommandHandler : IRequestHandler<DeleteTipoInfracaoCommand, bool>
 {
@@ -20,7 +20,7 @@ public class DeleteTipoInfracaoCommandHandler : IRequestHandler<DeleteTipoInfrac
         if (tipoInfracao == null)
             return false;
 
-        await _repository.DeleteAsync(tipoInfracao);
+        await _repository.DeleteAsync(tipoInfracao.Id);
         return true;
     }
 }

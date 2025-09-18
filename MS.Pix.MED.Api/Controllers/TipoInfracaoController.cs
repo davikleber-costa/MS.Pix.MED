@@ -16,7 +16,7 @@ public class TipoInfracaoController : MedControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<TipoInfracao>> GetById(int id)
+    public async Task<ActionResult<TipoInfracao>> GetById(long id)
     {
         var result = await _mediator.Send(new GetTipoInfracaoByIdQuery(id));
         if (result == null)
@@ -40,7 +40,7 @@ public class TipoInfracaoController : MedControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<TipoInfracao>> Update(int id, [FromBody] UpdateTipoInfracaoCommand command)
+    public async Task<ActionResult<TipoInfracao>> Update(long id, [FromBody] UpdateTipoInfracaoCommand command)
     {
         if (id != command.Id)
             return BadRequest("ID mismatch");
@@ -53,7 +53,7 @@ public class TipoInfracaoController : MedControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(long id)
     {
         var result = await _mediator.Send(new DeleteTipoInfracaoCommand(id));
         if (!result)

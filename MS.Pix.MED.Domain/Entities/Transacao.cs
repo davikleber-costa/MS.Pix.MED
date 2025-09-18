@@ -10,6 +10,7 @@ public class Transacao
     public string CaminhoArquivo { get; set; } = string.Empty;
     public string? Agencia { get; set; }
     public string? Conta { get; set; }
+    public string? Observacao { get; set; }
     public DateTime DataCriacao { get; set; }
     public TimeOnly HoraCriacao { get; set; }
 

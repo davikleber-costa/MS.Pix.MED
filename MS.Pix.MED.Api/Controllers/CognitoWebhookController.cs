@@ -5,8 +5,8 @@ using System.Text.Json;
 namespace MS.Pix.MED.Api.Controllers;
 
 [ApiController]
-[AllowAnonymous] // Cognito precisa acessar sem autentica��o
-[Route("v1/cognito")]
+[AllowAnonymous] // Cognito precisa acessar sem autenticação
+[Route("api/cognito")]
 [Produces("application/json")]
 public class CognitoWebhookController : ControllerBase
 {
@@ -18,7 +18,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de pr�-autentica��o do Cognito
+	/// Webhook para eventos de pré-autenticação do Cognito
 	/// </summary>
 	[HttpPost("pre-authentication")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -30,8 +30,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Pre-Authentication trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui voc� pode implementar valida��es customizadas
-			// Por exemplo: verificar se o usu�rio est� ativo, validar dom�nio do email, etc.
+			// Aqui você pode implementar validações customizadas
+			// Por exemplo: verificar se o usuário está ativo, validar domínio do email, etc.
 
 			var response = new CognitoResponse
 			{
@@ -53,7 +53,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de p�s-autentica��o do Cognito
+	/// Webhook para eventos de pós-autenticação do Cognito
 	/// </summary>
 	[HttpPost("post-authentication")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -65,8 +65,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Post-Authentication trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui voc� pode implementar l�gicas p�s-login
-			// Por exemplo: registrar �ltimo login, atualizar estat�sticas, etc.
+			// Aqui você pode implementar lógicas pós-login
+			// Por exemplo: registrar último login, atualizar estatísticas, etc.
 
 			var response = new CognitoResponse
 			{
@@ -84,7 +84,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de pr�-signup do Cognito
+	/// Webhook para eventos de pré-signup do Cognito
 	/// </summary>
 	[HttpPost("pre-signup")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -96,8 +96,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Pre-SignUp trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui voc� pode implementar valida��es de registro
-			// Por exemplo: validar formato do email, verificar dom�nios permitidos, etc.
+			// Aqui você pode implementar validações de registro
+			// Por exemplo: validar formato do email, verificar domínios permitidos, etc.
 
 			var response = new CognitoResponse
 			{
@@ -119,7 +119,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Webhook para eventos de p�s-confirma��o do Cognito
+	/// Webhook para eventos de pós-confirmação do Cognito
 	/// </summary>
 	[HttpPost("post-confirmation")]
 	[ProducesResponseType(typeof(CognitoResponse), StatusCodes.Status200OK)]
@@ -131,8 +131,8 @@ public class CognitoWebhookController : ControllerBase
 			_logger.LogInformation("Cognito Post-Confirmation trigger received for user: {Username}",
 				request?.UserName ?? "Unknown");
 
-			// Aqui voc� pode implementar l�gicas p�s-confirma��o
-			// Por exemplo: criar perfil do usu�rio, enviar email de boas-vindas, etc.
+			// Aqui você pode implementar lógicas pós-confirmação
+			// Por exemplo: criar perfil do usuário, enviar email de boas-vindas, etc.
 
 			var response = new CognitoResponse
 			{
@@ -150,7 +150,7 @@ public class CognitoWebhookController : ControllerBase
 	}
 
 	/// <summary>
-	/// Health check para verificar se o servi�o est� funcionando
+	/// Health check para verificar se o serviço está funcionando
 	/// </summary>
 	[HttpGet("health")]
 	[ProducesResponseType(StatusCodes.Status200OK)]

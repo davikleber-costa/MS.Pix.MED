@@ -26,8 +26,8 @@ public class CreateRetornoJdpiCommandHandler : IRequestHandler<CreateRetornoJdpi
             TransacaoId = request.TransacaoId,
             RequisicaoJdpi = request.RequisicaoJdpi,
             RespostaJdpi = request.RespostaJdpi,
-            DataCriacao = DateOnly.FromDateTime(DateTime.Now),
-            HoraCriacao = TimeOnly.FromDateTime(DateTime.Now)
+            DataCriacao = DateTime.Now,
+            HoraCriacao = DateTime.Now.TimeOfDay
         };
 
         return await _repository.AddAsync(retornoJdpi);

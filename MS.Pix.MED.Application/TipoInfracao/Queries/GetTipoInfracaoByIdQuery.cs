@@ -4,7 +4,7 @@ using MS.Pix.MED.Infrastructure.Interfaces;
 
 namespace MS.Pix.MED.Application.TipoInfracao.Queries;
 
-public record GetTipoInfracaoByIdQuery(int Id) : IRequest<Domain.Entities.TipoInfracao?>;
+public record GetTipoInfracaoByIdQuery(long Id) : IRequest<Domain.Entities.TipoInfracao?>;
 
 public class GetTipoInfracaoByIdQueryHandler : IRequestHandler<GetTipoInfracaoByIdQuery, Domain.Entities.TipoInfracao?>
 {

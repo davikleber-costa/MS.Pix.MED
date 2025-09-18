@@ -4,7 +4,7 @@ using MS.Pix.MED.Infrastructure.Interfaces;
 
 namespace MS.Pix.MED.Application.Transacao.Queries;
 
-public record GetTransacoesByTipoInfracaoQuery(int TipoInfracaoId) : IRequest<IEnumerable<Domain.Entities.Transacao>>;
+public record GetTransacoesByTipoInfracaoQuery(long TipoInfracaoId) : IRequest<IEnumerable<Domain.Entities.Transacao>>;
 
 public class GetTransacoesByTipoInfracaoQueryHandler : IRequestHandler<GetTransacoesByTipoInfracaoQuery, IEnumerable<Domain.Entities.Transacao>>
 {

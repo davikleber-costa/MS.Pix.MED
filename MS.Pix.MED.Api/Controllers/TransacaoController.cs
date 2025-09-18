@@ -16,7 +16,7 @@ public class TransacaoController : MedControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Transacao>> GetById(int id)
+    public async Task<ActionResult<Transacao>> GetById(long id)
     {
         var result = await _mediator.Send(new GetTransacaoByIdQuery(id));
         if (result == null)
@@ -26,7 +26,7 @@ public class TransacaoController : MedControllerBase
     }
 
     [HttpGet("by-tipo-infracao/{tipoInfracaoId}")]
-    public async Task<ActionResult<IEnumerable<Transacao>>> GetByTipoInfracao(int tipoInfracaoId)
+    public async Task<ActionResult<IEnumerable<Transacao>>> GetByTipoInfracao(long tipoInfracaoId)
     {
         var result = await _mediator.Send(new GetTransacoesByTipoInfracaoQuery(tipoInfracaoId));
         return Ok(result);
@@ -40,7 +40,7 @@ public class TransacaoController : MedControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<Transacao>> Update(int id, [FromBody] UpdateTransacaoCommand command)
+    public async Task<ActionResult<Transacao>> Update(long id, [FromBody] UpdateTransacaoCommand command)
     {
         if (id != command.Id)
             return BadRequest("ID mismatch");
@@ -53,7 +53,7 @@ public class TransacaoController : MedControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(long id)
     {
         var result = await _mediator.Send(new DeleteTransacaoCommand(id));
         if (!result)
