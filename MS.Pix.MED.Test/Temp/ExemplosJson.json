@@ -1,0 +1,124 @@
+{
+  "configuracao_jdpi": {
+    "ClientId": "SCT01",
+    "ClientSecret": "834737fcf9b3434da8262bd25650205e",
+    "BaseUrl": "https://localhost:7189",
+    "AuthUrl": "https://localhost:7189",
+    "Scope": "dict_api,qrcode_api,spi_api",
+    "GrantType": "client_credentials"
+  },
+  
+  "exemplo_requisicao_token": {
+    "url": "https://localhost:7189/connect/token",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "body": {
+      "client_id": "SCT01",
+      "client_secret": "834737fcf9b3434da8262bd25650205e",
+      "grant_type": "client_credentials",
+      "scope": "dict_api,qrcode_api,spi_api"
+    }
+  },
+  
+  "exemplo_resposta_token_sucesso": {
+    "access_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyMzQ1NjciLCJ0eXAiOiJKV1QifQ...",
+    "expires_in": 3600,
+    "token_type": "Bearer",
+    "scope": "dict_api qrcode_api spi_api"
+  },
+  
+  "exemplo_resposta_token_erro": {
+    "error": "invalid_client",
+    "error_description": "Client authentication failed"
+  },
+  
+  "exemplo_dados_teste_requisicao": {
+    "teste": true,
+    "timestamp": "2024-01-20T10:30:00Z",
+    "dados": "Teste de integração MS.Pix.MED -> credisis-jdpi-core",
+    "transacao_id": 1234
+  },
+  
+  "cenarios_teste": {
+    "cenario_1_autenticacao_sucesso": {
+      "descricao": "Teste básico de autenticação com credenciais válidas",
+      "pre_requisitos": [
+        "credisis-jdpi-core rodando na porta 7189",
+        "Configurações corretas no teste"
+      ],
+      "resultado_esperado": "Token JWT válido retornado"
+    },
+    
+    "cenario_2_autenticacao_falha": {
+      "descricao": "Teste com credenciais inválidas",
+      "modificar": {
+        "ClientSecret": "credencial_invalida"
+      },
+      "resultado_esperado": "Erro 401 Unauthorized"
+    },
+    
+    "cenario_3_jdpi_offline": {
+      "descricao": "Teste com JDPI offline",
+      "pre_requisitos": [
+        "credisis-jdpi-core NÃO rodando"
+      ],
+      "resultado_esperado": "Connection refused exception"
+    },
+    
+    "cenario_4_requisicao_completa": {
+      "descricao": "Teste de autenticação + chamada de API",
+      "endpoint": "api/infracoes/relato-infracao/listar",
+      "resultado_esperado": "Resposta da API JDPI"
+    }
+  },
+  
+  "comandos_execucao": {
+    "executar_jdpi": {
+      "comando": "dotnet run --project src/JDPI.API",
+      "diretorio": "d:\\SIS\\credisis-jdpi-core",
+      "porta": 7189,
+      "swagger": "https://localhost:7189/swagger"
+    },
+    
+    "executar_teste_ms_pix_med": {
+      "arquivo": "ExecutarTesteJdpi.cs",
+      "metodo": "Main",
+      "modo": "Debug (F5)",
+      "breakpoints": [
+        "TesteIntegracaoJdpi.TestarAutenticacaoAsync() linha ~35",
+        "JdpiIntegrationService.AuthenticateAsync() linha 44",
+        "Antes da chamada HTTP linha 82",
+        "Após receber resposta linha 87"
+      ]
+    }
+  },
+  
+  "variaveis_debug_importantes": {
+    "no_teste": [
+      "configuration.ClientId",
+      "configuration.ClientSecret", 
+      "configuration.AuthUrl",
+      "autenticado (bool)",
+      "resultado (object)"
+    ],
+    
+    "no_jdpi_service": [
+      "_configuration",
+      "tokenRequest",
+      "response.StatusCode",
+      "responseContent",
+      "tokenResponse.AccessToken",
+      "_accessToken",
+      "_tokenExpiry"
+    ]
+  },
+  
+  "logs_esperados": [
+    "=== INICIANDO TESTE DE AUTENTICAÇÃO JDPI ===",
+    "Iniciando autenticação com API JDPI externa",
+    "Autenticação com API JDPI externa realizada com sucesso",
+    "=== RESULTADO TESTE AUTENTICAÇÃO: {...} ==="
+  ]
+}
