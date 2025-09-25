@@ -36,7 +36,7 @@ public class TransacaoMapping : IEntityTypeConfiguration<Transacao>
                 v => v == 1);
 
         builder.Property(t => t.GuidExtratoJdpi)
-            .HasColumnName("guid_extrato_jdpi")
+            .HasColumnName("guid_extrato")
             .HasColumnType("CHAR(32)")
             .IsRequired();
 
