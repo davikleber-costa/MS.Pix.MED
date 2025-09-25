@@ -7,7 +7,9 @@ namespace MS.Pix.MED.Application.RetornoJdpi.Commands;
 public record CreateRetornoJdpiCommand(
     long TransacaoId,
     string RequisicaoJdpi,
-    string RespostaJdpi
+    string RespostaJdpi,
+    DateTime? DataCriacao = null,
+    TimeSpan? HoraCriacao = null
 ) : IRequest<Domain.Entities.RetornoJdpi>;
 
 public class CreateRetornoJdpiCommandHandler : IRequestHandler<CreateRetornoJdpiCommand, Domain.Entities.RetornoJdpi>
@@ -26,8 +28,10 @@ public class CreateRetornoJdpiCommandHandler : IRequestHandler<CreateRetornoJdpi
             TransacaoId = request.TransacaoId,
             RequisicaoJdpi = request.RequisicaoJdpi,
             RespostaJdpi = request.RespostaJdpi,
-            DataCriacao = DateTime.Now,
-            HoraCriacao = DateTime.Now.TimeOfDay
+            // Se DataCriacao foi fornecida, usa ela, senão usa DateTime.Now
+            DataCriacao = request.DataCriacao ?? DateTime.Now,
+            // Se HoraCriacao foi fornecida, usa ela, senão usa DateTime.Now.TimeOfDay
+            HoraCriacao = request.HoraCriacao ?? DateTime.Now.TimeOfDay
         };
 
         return await _repository.AddAsync(retornoJdpi);

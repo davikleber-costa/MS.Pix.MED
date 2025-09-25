@@ -10,10 +10,10 @@ public record UpdateTransacaoCommand(
     string IdNotificacaoJdpi,
     bool StatusRelatoJdpi,
     string? GuidExtratoJdpi = null,
-    string? CaminhoArquivo = null,
-    string? Agencia = null,
-    string? Conta = null,
-    string? Observacao = null
+    string? CaminhoArquivo = null
+    // string? Agencia = null,
+    // string? Conta = null,
+    // string? Observacao = null
 ) : IRequest<Domain.Entities.Transacao?>;
 
 public class UpdateTransacaoCommandHandler : IRequestHandler<UpdateTransacaoCommand, Domain.Entities.Transacao?>
@@ -34,11 +34,11 @@ public class UpdateTransacaoCommandHandler : IRequestHandler<UpdateTransacaoComm
         transacao.TipoInfracaoId = request.TipoInfracaoId;
         transacao.IdNotificacaoJdpi = request.IdNotificacaoJdpi;
         transacao.StatusRelatoJdpi = request.StatusRelatoJdpi;
-        transacao.GuidExtratoJdpi = request.GuidExtratoJdpi;
-        transacao.CaminhoArquivo = request.CaminhoArquivo;
-        transacao.Agencia = request.Agencia;
-        transacao.Conta = request.Conta;
-        transacao.Observacao = request.Observacao;
+        transacao.GuidExtratoJdpi = request.GuidExtratoJdpi ?? string.Empty;
+        transacao.CaminhoArquivo = request.CaminhoArquivo ?? string.Empty;
+        // transacao.Agencia = request.Agencia;
+        // transacao.Conta = request.Conta;
+        // transacao.Observacao = request.Observacao;
 
         return await _repository.UpdateAsync(transacao);
     }

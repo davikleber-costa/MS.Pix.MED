@@ -9,7 +9,6 @@ public static class AuthenticationExtensions
     public static IServiceCollection AddAuthenticationServices(this IServiceCollection services)
     {
         services.AddScoped<IAuthenticationService, AuthenticationService>();
-        services.AddScoped<IUserContextRepository, UserContextRepository>();
         
         return services;
     }

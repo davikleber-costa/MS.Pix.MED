@@ -1,6 +1,5 @@
 using MS.Pix.MED.Integration.Jdpi;
 using MS.Pix.MED.Infrastructure.Extensions;
-using MS.Pix.MED.Infrastructure.Middlewares;
 using MS.Pix.MED.Infrastructure;
 using MS.Pix.MED.Application.Extensions;
 using MediatR;
@@ -32,6 +31,10 @@ builder.Services.UseJdpiApiIntegration(builder.Configuration);
 // Configurar CORS para API JDPI
 builder.Services.AddJdpiCors(builder.Configuration);
 
+// Configurar opções do ContatoCriador
+builder.Services.Configure<MS.Pix.MED.Integration.Options.ContatoCriadorOptions>(
+    builder.Configuration.GetSection("ContatoCriador"));
+
 // Configurar serviços de autenticação
 builder.Services.AddAuthenticationServices();
 
@@ -57,9 +60,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-// Configurar middleware personalizado
-app.UseMiddleware<RequestContextMiddleware>();
 
 // Configurar CORS para API JDPI
 app.UseCors("JdpiApiPolicy");
