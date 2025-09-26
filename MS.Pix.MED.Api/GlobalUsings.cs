@@ -12,4 +12,3 @@ global using MS.Pix.MED.Application;
 global using MS.Pix.MED.Domain;
 global using MS.Pix.MED.Infrastructure;
 global using MS.Pix.MED.Integration;
-global using MS.Pix.Shared;

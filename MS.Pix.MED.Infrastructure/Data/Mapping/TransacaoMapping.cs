@@ -36,7 +36,7 @@ public class TransacaoMapping : IEntityTypeConfiguration<Transacao>
                 v => v == 1);
 
         builder.Property(t => t.GuidExtratoJdpi)
-            .HasColumnName("guid_extrato_jdpi")
+            .HasColumnName("guid_extrato")
             .HasColumnType("CHAR(32)")
             .IsRequired();
 
@@ -45,15 +45,20 @@ public class TransacaoMapping : IEntityTypeConfiguration<Transacao>
             .HasColumnType("VARCHAR(200)")
             .IsRequired();
 
-        builder.Property(t => t.Agencia)
-            .HasColumnName("agencia")
-            .HasColumnType("CHAR(10)")
-            .IsRequired(false);
+        // builder.Property(t => t.Agencia)
+        //     .HasColumnName("agencia")
+        //     .HasColumnType("CHAR(10)")
+        //     .IsRequired(false);
 
-        builder.Property(t => t.Conta)
-            .HasColumnName("conta")
-            .HasColumnType("CHAR(20)")
-            .IsRequired(false);
+        // builder.Property(t => t.Conta)
+        //     .HasColumnName("conta")
+        //     .HasColumnType("CHAR(20)")
+        //     .IsRequired(false);
+
+        // builder.Property(t => t.Observacao)
+        //     .HasColumnName("observacao")
+        //     .HasColumnType("VARCHAR(200)")
+        //     .IsRequired(false);
 
         builder.Property(t => t.DataCriacao)
             .HasColumnName("data_criacao")

@@ -2,11 +2,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MS.Pix.MED.Domain.Entities;
 using MS.Pix.MED.Integration.Jdpi.Configuration;
-using MS.Pix.MED.Integration.Jdpi.Request;
-using MS.Pix.MED.Integration.Jdpi.Response;
+using MS.Pix.MED.Application.RetornoJdpi.Commands;
+using MS.Pix.MED.Application.Transacao.Commands;
+using MediatR;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text;
-using System.Collections.Concurrent;
+using System.Globalization;
 
 namespace MS.Pix.MED.Integration.Jdpi.Services;
 
@@ -15,19 +17,18 @@ public class JdpiIntegrationService
     private readonly HttpClient _httpClient;
     private readonly JdpiConfiguration _configuration;
     private readonly ILogger<JdpiIntegrationService> _logger;
-    private readonly ConcurrentDictionary<string, (string Token, DateTime Expiry)> _tokenCache;
-    private string? _accessToken;
-    private DateTime _tokenExpiry;
+    private readonly IMediator _mediator;
 
     public JdpiIntegrationService(
         HttpClient httpClient,
         IOptions<JdpiConfiguration> configuration,
-        ILogger<JdpiIntegrationService> logger)
+        ILogger<JdpiIntegrationService> logger,
+        IMediator mediator)
     {
         _httpClient = httpClient;
         _configuration = configuration.Value;
         _logger = logger;
-        _tokenCache = new ConcurrentDictionary<string, (string, DateTime)>();
+        _mediator = mediator;
         
         _httpClient.BaseAddress = new Uri(_configuration.BaseUrl);
         _httpClient.Timeout = TimeSpan.FromSeconds(_configuration.TimeoutSeconds);
@@ -41,145 +42,193 @@ public class JdpiIntegrationService
         }
     }
 
-    public async Task<bool> AuthenticateAsync()
+    public async Task<RetornoJdpi> SendToJdpiAsync(string endpoint, object requestData, long transacaoId)
     {
-        try
-        {
-            var cacheKey = $"{_configuration.ClientId}:{_configuration.Scope}";
-            
-            // Verifica cache de token se habilitado
-            if (_configuration.EnableTokenCache && _tokenCache.TryGetValue(cacheKey, out var cachedToken))
-            {
-                if (DateTime.UtcNow < cachedToken.Expiry)
-                {
-                    _accessToken = cachedToken.Token;
-                    _tokenExpiry = cachedToken.Expiry;
-                    return true;
-                }
-                _tokenCache.TryRemove(cacheKey, out _);
-            }
-
-            // Verifica token atual
-            if (!string.IsNullOrEmpty(_accessToken) && DateTime.UtcNow < _tokenExpiry)
-            {
-                return true;
-            }
-
-            _logger.LogInformation("Iniciando autenticação com API JDPI externa");
-
-            var tokenRequest = new TokenRequest
-            {
-                ClientId = _configuration.ClientId,
-                ClientSecret = _configuration.ClientSecret,
-                GrantType = "client_credentials",
-                Scope = _configuration.Scope ?? string.Empty
-            };
-
-            var formContent = new FormUrlEncodedContent(new[]
-            {
-                new KeyValuePair<string, string>("client_id", tokenRequest.ClientId),
-                new KeyValuePair<string, string>("client_secret", tokenRequest.ClientSecret),
-                new KeyValuePair<string, string>("grant_type", tokenRequest.GrantType),
-                new KeyValuePair<string, string>("scope", tokenRequest.Scope)
-            });
-
-            using var authClient = new HttpClient { BaseAddress = new Uri(_configuration.AuthUrl) };
-            var response = await authClient.PostAsync("/connect/token", formContent);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            if (response.IsSuccessStatusCode)
-            {
-                var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(responseContent);
-                if (tokenResponse != null)
-                {
-                    _accessToken = tokenResponse.AccessToken;
-                    _tokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn - 60);
-                    
-                    // Armazena no cache se habilitado
-                    if (_configuration.EnableTokenCache)
-                    {
-                        var cacheExpiry = DateTime.UtcNow.AddMinutes(_configuration.TokenCacheMinutes);
-                        _tokenCache.TryAdd(cacheKey, (_accessToken, cacheExpiry));
-                    }
-                    
-                    _logger.LogInformation("Autenticação com API JDPI externa realizada com sucesso");
-                    return true;
-                }
-            }
-
-            _logger.LogError("Falha na autenticação com API JDPI: {StatusCode} - {Content}", response.StatusCode, responseContent);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro durante autenticação com API JDPI externa");
-            return false;
-        }
-    }
-
-    public async Task<RetornoJdpi> SendToJdpiAsync(string endpoint, object requestData, long transacaoId, CancellationToken cancellationToken = default)
-    {
-        var retornoJdpi = new RetornoJdpi
-        {
-            TransacaoId = transacaoId,
-            RequisicaoJdpi = JsonConvert.SerializeObject(requestData),
-            DataCriacao = DateTime.UtcNow,
-            HoraCriacao = TimeOnly.FromDateTime(DateTime.UtcNow).ToTimeSpan()
-        };
+        var requestJson = JsonConvert.SerializeObject(requestData);
+        string responseContent = string.Empty;
+        DateTime? dataCriacaoRelato = null;
+        TimeSpan? horaCriacaoRelato = null;
+        bool isError = false;
+        string errorMessage = string.Empty;
+        long finalTransacaoId = transacaoId;
 
         try
         {
-            await EnsureAuthenticatedAsync(cancellationToken);
-
             _logger.LogInformation("Enviando dados para API JDPI externa - Endpoint: {Endpoint}", endpoint);
 
-            _httpClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
+            var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-            var json = JsonConvert.SerializeObject(requestData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync($"{_configuration.BaseUrl}/{endpoint}", content, cancellationToken);
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            retornoJdpi.RespostaJdpi = responseContent;
+            var response = await _httpClient.PostAsync(endpoint, content);
+            responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Dados enviados com sucesso para API JDPI externa");
+                
+                // Extrair dtHrCriacaoRelatoInfracao da resposta se for um sucesso (status 200)
+                var (dataExtraida, horaExtraida) = ExtractDtHrCriacaoRelatoInfracao(responseContent);
+                dataCriacaoRelato = dataExtraida;
+                horaCriacaoRelato = horaExtraida;
             }
             else
             {
                 _logger.LogWarning("Resposta de erro da API JDPI externa: {StatusCode} - {Content}", response.StatusCode, responseContent);
+                isError = true;
+                errorMessage = $"HTTP {response.StatusCode}: {responseContent}";
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao enviar dados para API JDPI externa");
-            retornoJdpi.RespostaJdpi = $"Erro: {ex.Message}";
+            isError = true;
+            errorMessage = ex.Message;
+            responseContent = $"Erro: {ex.Message}";
         }
 
+        // Se houve erro e transacaoId é 0, criar transação genérica de erro
+        if (isError && transacaoId == 0)
+        {
+            try
+            {
+                // Extrair informações do erro para criar a transação
+                var (idNotificacao, statusRelato, guidExtrato) = ExtractErrorInfo(responseContent, errorMessage);
+                
+                var createTransacaoCommand = new CreateTransacaoCommand(
+                    TipoInfracaoId: 5, // ID para transação de erro
+                    IdNotificacaoJdpi: idNotificacao,
+                    StatusRelatoJdpi: statusRelato,
+                    GuidExtratoJdpi: guidExtrato,
+                    CaminhoArquivo: null,
+                    DataCriacaoRelato: dataCriacaoRelato,
+                    HoraCriacaoRelato: horaCriacaoRelato?.ToTimeOnly()
+                );
+
+                var transacaoCriada = await _mediator.Send(createTransacaoCommand);
+                finalTransacaoId = transacaoCriada.Id;
+                
+                _logger.LogInformation("Transação genérica de erro criada com ID: {TransacaoId}", finalTransacaoId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao criar transação genérica de erro");
+                // Se não conseguir criar a transação, usar ID 0 mesmo
+                finalTransacaoId = 0;
+            }
+        }
+
+        // Persistir no banco usando CQRS com data e hora extraídas (se disponíveis)
+        var createCommand = new CreateRetornoJdpiCommand(
+            finalTransacaoId,
+            requestJson,
+            responseContent,
+            dataCriacaoRelato,
+            horaCriacaoRelato // Já é TimeSpan?, não precisa converter
+        );
+
+        var retornoJdpi = await _mediator.Send(createCommand);
         return retornoJdpi;
     }
 
-    public async Task<TResponse> QueryJdpiAsync<TResponse>(string endpoint, object? queryParameters = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Extrai informações de erro para criar transação genérica
+    /// </summary>
+    /// <param name="responseContent">Conteúdo da resposta</param>
+    /// <param name="errorMessage">Mensagem de erro</param>
+    /// <returns>Tupla com IdNotificacaoJdpi, StatusRelatoJdpi e GuidExtratoJdpi</returns>
+    private (string idNotificacao, bool statusRelato, string guidExtrato) ExtractErrorInfo(string responseContent, string errorMessage)
     {
         try
         {
-            await EnsureAuthenticatedAsync(cancellationToken);
+            // Tentar extrair informações do JSON de resposta se possível
+            if (!string.IsNullOrWhiteSpace(responseContent) && responseContent.StartsWith("{"))
+            {
+                var jsonObject = JObject.Parse(responseContent);
+                
+                var idNotificacao = jsonObject.SelectToken("idNotificacaoJdpi")?.ToString() ?? 
+                                   jsonObject.SelectToken("idRelatoInfracao")?.ToString() ?? 
+                                   Guid.NewGuid().ToString("N");
+                
+                var guidExtrato = jsonObject.SelectToken("guidExtratoJdpi")?.ToString() ?? 
+                                 jsonObject.SelectToken("guid")?.ToString() ?? 
+                                 Guid.NewGuid().ToString("N");
+                
+                return (idNotificacao, false, guidExtrato); // StatusRelatoJdpi = false para erro
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Não foi possível extrair informações do JSON de erro");
+        }
 
+        // Se não conseguir extrair do JSON, gerar valores padrão
+        return (
+            idNotificacao: Guid.NewGuid().ToString("N"),
+            statusRelato: false, // false indica erro
+            guidExtrato: Guid.NewGuid().ToString("N")
+        );
+    }
+
+    /// <summary>
+    /// Extrai dtHrCriacaoRelatoInfracao da resposta JSON do JDPI
+    /// </summary>
+    /// <param name="responseContent">Conteúdo da resposta JSON</param>
+    /// <returns>Tupla com data e hora extraídas, ou null se não encontradas</returns>
+    private (DateTime? data, TimeSpan? hora) ExtractDtHrCriacaoRelatoInfracao(string responseContent)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(responseContent))
+                return (null, null);
+
+            var jsonObject = JObject.Parse(responseContent);
+            var dtHrCriacaoToken = jsonObject.SelectToken("dtHrCriacaoRelatoInfracao");
+            
+            if (dtHrCriacaoToken == null)
+                return (null, null);
+
+            var dtHrCriacaoStr = dtHrCriacaoToken.ToString();
+            
+            // Tentar parsear diferentes formatos de data/hora
+            if (DateTime.TryParse(dtHrCriacaoStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+            {
+                return (dateTime.Date, dateTime.TimeOfDay);
+            }
+            
+            // Tentar formato ISO 8601
+            if (DateTime.TryParseExact(dtHrCriacaoStr, "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTimeIso))
+            {
+                return (dateTimeIso.Date, dateTimeIso.TimeOfDay);
+            }
+            
+            // Tentar formato ISO 8601 com milissegundos
+            if (DateTime.TryParseExact(dtHrCriacaoStr, "yyyy-MM-ddTHH:mm:ss.fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTimeIsoMs))
+            {
+                return (dateTimeIsoMs.Date, dateTimeIsoMs.TimeOfDay);
+            }
+
+            _logger.LogWarning("Não foi possível parsear dtHrCriacaoRelatoInfracao: {DtHrCriacao}", dtHrCriacaoStr);
+            return (null, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao extrair dtHrCriacaoRelatoInfracao da resposta JDPI");
+            return (null, null);
+        }
+    }
+
+    public async Task<TResponse> QueryJdpiAsync<TResponse>(string endpoint, object? queryParameters = null)
+    {
+        try
+        {
             _logger.LogInformation("Consultando dados da API JDPI externa - Endpoint: {Endpoint}", endpoint);
 
-            _httpClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
-
             var queryString = BuildQueryString(queryParameters);
-            var url = $"{_configuration.BaseUrl}/{endpoint}{queryString}";
+            var url = $"{endpoint}{queryString}";
 
-            var response = await _httpClient.GetAsync(url, cancellationToken);
+            var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            var responseContent = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<TResponse>(responseContent) ?? default(TResponse)!;
         }
         catch (Exception ex)
@@ -189,22 +238,14 @@ public class JdpiIntegrationService
         }
     }
 
-    public async Task<RetornoJdpi> ProcessRefundAsync(object refundData, long transacaoId, CancellationToken cancellationToken = default)
+    public async Task<RetornoJdpi> ProcessRefundAsync(object refundData, long transacaoId)
     {
-        return await SendToJdpiAsync("devolucao", refundData, transacaoId, cancellationToken);
+        return await SendToJdpiAsync("devolucao", refundData, transacaoId);
     }
 
-    public async Task<TResponse> ListRefundsAsync<TResponse>(object? filters = null, CancellationToken cancellationToken = default)
+    public async Task<TResponse> ListRefundsAsync<TResponse>(object? filters = null)
     {
-        return await QueryJdpiAsync<TResponse>("devolucao/listar", filters, cancellationToken);
-    }
-
-    private async Task EnsureAuthenticatedAsync(CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(_accessToken) || DateTime.UtcNow >= _tokenExpiry)
-        {
-            await AuthenticateAsync();
-        }
+        return await QueryJdpiAsync<TResponse>("devolucao/listar", filters);
     }
 
     private static string BuildQueryString(object? parameters)
@@ -218,5 +259,14 @@ public class JdpiIntegrationService
 
         var queryString = string.Join("&", queryParams);
         return string.IsNullOrEmpty(queryString) ? "" : $"?{queryString}";
+    }
+}
+
+// Extension method para converter TimeSpan para TimeOnly
+public static class TimeSpanExtensions
+{
+    public static TimeOnly ToTimeOnly(this TimeSpan timeSpan)
+    {
+        return TimeOnly.FromTimeSpan(timeSpan);
     }
 }

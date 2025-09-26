@@ -1,0 +1,139 @@
+{
+  "autenticacao": {
+    "url": "/connect/token",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "body": {
+      "client_id": "SCT01",
+      "client_secret": "834737fcf9b3434da8262bd25650205e",
+      "grant_type": "client_credentials",
+      "scope": "dict_api,qrcode_api,spi_api"
+    },
+    "response_example": {
+      "access_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2...",
+      "expires_in": 3600,
+      "token_type": "Bearer",
+      "scope": "dict_api qrcode_api spi_api"
+    }
+  },
+  "incluir_relato_infracao": {
+    "url": "/api/infracoes/relato-infracao/incluir",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {access_token}",
+      "Chave-Idempotencia": "{guid_36_chars}",
+      "Content-Type": "application/json"
+    },
+    "request_example": {
+      "ispb": "04358798",
+      "endToEndId": "E9999901012341234123412345678900",
+      "motivo": 1,
+      "tpSitOrigem": 0,
+      "detalhes": "Transação feita através de QR Code falso em boleto",
+      "contatoCriador": {
+        "email": "fulano.tal@criador.com.br",
+        "telefone": "+556198887777"
+      }
+    },
+    "response_example": {
+      "idRelatoInfracao": "91d65e98-97c0-4b0f-b577-73625da1f9fc",
+      "stRelatoInfracao": "0",
+      "pspCriador": "04358798",
+      "pspContraParte": "99999011",
+      "dthrCriacaoRelato": "2023-08-22T10:30:10.008Z",
+      "dthrUltimaModificacao": "2023-08-22T10:30:10.008Z"
+    }
+  },
+  "listar_relatos_infracao": {
+    "url": "/api/infracoes/relato-infracao/listar",
+    "method": "GET",
+    "headers": {
+      "Authorization": "Bearer {access_token}"
+    },
+    "query_parameters": {
+      "ispb": "04358798",
+      "ehRelatoSolicitado": false,
+      "incluiDetalhes": true,
+      "pagina": 1,
+      "tamanhoPagina": 10,
+      "dthrInicio": "2023-08-01T00:00:00.000Z",
+      "dthrFim": "2023-08-31T23:59:59.999Z"
+    },
+    "response_example": {
+      "relatos": [
+        {
+          "idRelatoInfracao": "91d65e98-97c0-4b0f-b577-73625da1f9fc",
+          "stRelatoInfracao": "0",
+          "pspCriador": "04358798",
+          "pspContraParte": "99999011",
+          "dthrCriacaoRelato": "2023-08-22T10:30:10.008Z",
+          "dthrUltimaModificacao": "2023-08-22T10:30:10.008Z",
+          "detalhes": {
+            "endToEndId": "E9999901012341234123412345678900",
+            "motivo": 1,
+            "tpSitOrigem": 0,
+            "detalhes": "Transação feita através de QR Code falso em boleto",
+            "contatoCriador": {
+              "email": "fulano.tal@criador.com.br",
+              "telefone": "+556198887777"
+            }
+          }
+        }
+      ],
+      "totalRegistros": 1,
+      "paginaAtual": 1,
+      "totalPaginas": 1
+    }
+  },
+  "cancelar_relato_infracao": {
+    "url": "/api/infracoes/relato-infracao/cancelar",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {access_token}",
+      "Chave-Idempotencia": "{guid_36_chars}",
+      "Content-Type": "application/json"
+    },
+    "request_example": {
+      "idRelatoInfracao": "91d65e98-97c0-4b0f-b577-73625da1f9fc",
+      "ispb": "04358798"
+    },
+    "response_example": {
+      "idRelatoInfracao": "91d65e98-97c0-4b0f-b577-73625da1f9fc",
+      "stRelatoInfracao": "3",
+      "dthrUltimaModificacao": "2023-08-22T11:15:30.125Z"
+    }
+  },
+  "headers_obrigatorios": {
+    "Authorization": {
+      "tipo": "String",
+      "tamanho": "-",
+      "obrigatorio": "Sim",
+      "descricao": "Token de Acesso. Veja seção 5.1 e seção 8.1."
+    },
+    "Chave-Idempotencia": {
+      "tipo": "String",
+      "tamanho": "36",
+      "obrigatorio": "Sim",
+      "descricao": "Chave de Idempotência. Veja seção 5.1. e seção 6."
+    }
+  },
+  "codigos_motivo": {
+    "0": "Fraude confirmada",
+    "1": "Suspeita de fraude",
+    "2": "Falha operacional",
+    "3": "Outros"
+  },
+  "tipos_situacao_origem": {
+    "0": "Transação Pix",
+    "1": "Solicitação de devolução",
+    "2": "Outros"
+  },
+  "status_relato": {
+    "0": "Aberto",
+    "1": "Em análise",
+    "2": "Resolvido",
+    "3": "Cancelado"
+  }
+}

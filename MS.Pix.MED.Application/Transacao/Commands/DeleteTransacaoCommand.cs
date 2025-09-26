@@ -3,7 +3,7 @@ using MS.Pix.MED.Infrastructure.Interfaces;
 
 namespace MS.Pix.MED.Application.Transacao.Commands;
 
-public record DeleteTransacaoCommand(int Id) : IRequest<bool>;
+public record DeleteTransacaoCommand(long Id) : IRequest<bool>;
 
 public class DeleteTransacaoCommandHandler : IRequestHandler<DeleteTransacaoCommand, bool>
 {
@@ -20,7 +20,7 @@ public class DeleteTransacaoCommandHandler : IRequestHandler<DeleteTransacaoComm
         if (transacao == null)
             return false;
 
-        await _repository.DeleteAsync(transacao);
+        await _repository.DeleteAsync(transacao.Id);
         return true;
     }
 }

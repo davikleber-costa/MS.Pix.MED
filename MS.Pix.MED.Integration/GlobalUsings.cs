@@ -6,6 +6,5 @@ global using System.Threading.Tasks;
 global using System.Net.Http;
 global using System.Text.Json;
 global using MS.Pix.MED.Domain;
-global using MS.Pix.Shared;
 global using System.Net.Http.Headers;
 global using System.Text;
